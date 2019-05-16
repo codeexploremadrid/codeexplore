@@ -1,0 +1,455 @@
+###### 
+###### Creación de entorno completo:
+######    - VCN + Subnet + IGW
+######    - DB System x2 con RAC primario y RAC standby !!!
+######    - Compute nodes
+######    - Load Balancer
+######
+variable "tenancy_ocid" {}
+variable "user_ocid" {}
+variable "fingerprint" {}
+variable "private_key_path" {}
+variable "compartment_ocid" {}
+variable "region" {}
+
+provider "oci" {
+  tenancy_ocid = "${var.tenancy_ocid}"
+  user_ocid = "${var.user_ocid}"
+  fingerprint = "${var.fingerprint}"
+  private_key_path = "${var.private_key_path}"
+  region = "${var.region}"
+}
+
+data "oci_identity_availability_domains" "ADs" {
+  compartment_id = "${var.compartment_ocid}"
+}
+
+resource "oci_core_virtual_network" "spougnet" {
+  cidr_block = "172.16.0.0/16"
+  compartment_id = "${var.compartment_ocid}"
+  display_name = "spougnet"
+  dns_label = "spougnet"
+}
+
+
+###
+### Internet Gateway !!!
+###
+
+resource "oci_core_internet_gateway" "spougigw" {
+    compartment_id = "${var.compartment_ocid}"
+    display_name = "spougigw"
+    vcn_id = "${oci_core_virtual_network.spougnet.id}"
+}
+
+
+###
+### Nueva Route table !!!
+###
+
+resource "oci_core_route_table" "internetroutetable" {
+    compartment_id = "${var.compartment_ocid}"
+    display_name = "InternetRouteTable"
+    route_rules {
+        cidr_block = "0.0.0.0/0"
+        network_entity_id = "${oci_core_internet_gateway.spougigw.id}"
+    }
+    vcn_id = "${oci_core_virtual_network.spougnet.id}"
+}
+
+
+##
+## Agregar una security list a la que viene por defecto
+##    En esta vamos a agregar reglas de entrada a los puertos 80 y 8080 !!!
+##    Esta Security List se la agregaremos a los Middleware que estan en las subnets ad1 y ad2 !!!
+##
+
+resource "oci_core_security_list" "spougadhocseclist" {
+  compartment_id = "${var.compartment_ocid}"
+  vcn_id = "${oci_core_virtual_network.spougnet.id}"
+  display_name = "Adhoc Security List for spougnet"
+
+  // allow inbound tcp traffic from internet to port 80
+  ingress_security_rules 
+  {
+    protocol = "6" // tcp
+    source = "0.0.0.0/0"
+    stateless = false
+ tcp_options 
+     {
+      // These values correspond to the destination port range.
+      "min" = 80
+      "max" = 80
+     }
+  }
+
+  // allow inbound tcp traffic from internet to port 8080
+  ingress_security_rules 
+  {
+    protocol = "6" // tcp
+    source = "0.0.0.0/0"
+    stateless = false
+ tcp_options 
+     {
+      // These values correspond to the destination port range.
+      "min" = 8080
+      "max" = 8080
+     }
+  }
+}
+
+
+resource "oci_core_security_list" "spougsqlnetseclist" {
+  compartment_id = "${var.compartment_ocid}"
+  vcn_id = "${oci_core_virtual_network.spougnet.id}"
+  display_name = "SQLNET Security List for spougnet"
+
+  // allow inbound tcp traffic from internet to port 1521
+  ingress_security_rules 
+  {
+    protocol = "6" // tcp
+    source = "172.16.0.0/16" // Solo desde las maquinas de Middleware
+    stateless = false
+ tcp_options 
+     {
+      // These values correspond to the destination port range.
+      "min" = 1521
+      "max" = 1521
+     }
+  }
+
+}
+
+resource "oci_core_subnet" "spougnet-ad1" {
+  compartment_id = "${var.compartment_ocid}"
+
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.0.name}"
+  route_table_id      = "${oci_core_route_table.internetroutetable.id}"
+  vcn_id              = "${oci_core_virtual_network.spougnet.id}"
+  security_list_ids   = ["${oci_core_virtual_network.spougnet.default_security_list_id}","${oci_core_security_list.spougadhocseclist.id}"]
+  dhcp_options_id     = "${oci_core_virtual_network.spougnet.default_dhcp_options_id}"
+  dns_label = "DNSLABEL1"
+  display_name               = "spougnet-ad1"
+  cidr_block                 = "172.16.1.0/24"
+  prohibit_public_ip_on_vnic = false
+}
+
+resource "oci_core_subnet" "spougnet-ad2" {
+  compartment_id = "${var.compartment_ocid}"
+
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.1.name}"
+  route_table_id      = "${oci_core_route_table.internetroutetable.id}"
+  vcn_id              = "${oci_core_virtual_network.spougnet.id}"
+  security_list_ids   = ["${oci_core_virtual_network.spougnet.default_security_list_id}","${oci_core_security_list.spougadhocseclist.id}"]
+  dhcp_options_id     = "${oci_core_virtual_network.spougnet.default_dhcp_options_id}"
+  dns_label = "DNSLABEL2"
+  display_name               = "spougnet-ad2"
+  cidr_block                 = "172.16.2.0/24"
+  prohibit_public_ip_on_vnic = false
+}
+
+resource "oci_core_subnet" "spougnet-ad3" {
+  compartment_id = "${var.compartment_ocid}"
+
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.2.name}"
+  route_table_id      = "${oci_core_virtual_network.spougnet.default_route_table_id}"
+  vcn_id              = "${oci_core_virtual_network.spougnet.id}"
+  security_list_ids   = ["${oci_core_virtual_network.spougnet.default_security_list_id}","${oci_core_security_list.spougsqlnetseclist.id}"]
+  dhcp_options_id     = "${oci_core_virtual_network.spougnet.default_dhcp_options_id}"
+  dns_label = "DNSLABEL3"
+  display_name               = "spougnet-ad3"
+  cidr_block                 = "172.16.3.0/24"
+  prohibit_public_ip_on_vnic = false
+}
+
+
+###
+### Database system !!!
+###
+
+ resource "oci_database_db_system" "SPOUGDBSYSTEM" {
+   availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.2.name}"
+   compartment_id = "${var.compartment_ocid}"
+   cpu_core_count = "2"
+   database_edition = "ENTERPRISE_EDITION_EXTREME_PERFORMANCE"
+   db_home {
+     database {
+       "admin_password" = "ZZ0r_cle#1"
+       "db_name" = "SPOUGDB"
+       "pdb_name" = "SPOUGPDB"
+     }
+     db_version = "12.2.0.1"
+     display_name = "SPOUGDB"
+   }
+   disk_redundancy = "NORMAL"
+   shape = "VM.Standard1.2"
+   subnet_id = "${oci_core_subnet.spougnet-ad3.id}"
+   ssh_public_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdSYVIvv/pCTVX0UE/R+KmnuzI3wIGP23XZPCRQp+q71dTbbCCM/wEEXJ4idSLZpRGF0vKXWi9G2yShnFIL0TYLXEwptxc0csNkG8sl4FStAGIiSGzCXoIDMjYc3dF8Gq2M3Rlaf7o1snUmlH3rQIgvAhWfwxFBj+iFDb6+R1keMG6pzK420QRFpXYUmZhWBQeE3lFsusArao9ByIH3fw/juMsFmU3WHtgu2VtDI81gprk24Si380yyVzSms2V2ipIHihE2jhz/GvJ4FNdbjn9/t+OmApMigHmjvFq05fsrh75P+7FRbCIWB5KUA+Gq11LcZchh29TKl1oSGzcSu7B"]
+   display_name = "SPOUGDB"
+   hostname = "dbcn01"
+   data_storage_size_in_gb = "256"
+   license_model = "LICENSE_INCLUDED"
+   node_count = "1"
+ }
+
+
+
+###
+### APPCN01: compute Ubuntu con Tomcat: my.custom.ubuntu.16.04.v1.2.with.Tomcat !!!
+###
+
+
+resource "oci_core_instance" "SPOUGAPPCN01" {
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.0.name}"
+  compartment_id = "${var.compartment_ocid}"
+  display_name = "SPOUGAPPCN01"
+  image = "ocid1.image.oc1.phx.aaaaaaaasmcy3r5welurklsdtrlwqqqjhdy5jwe32ycsm3glf53z5ggjbznq"
+  shape = "VM.Standard1.2"
+
+  create_vnic_details {
+    subnet_id = "${oci_core_subnet.spougnet-ad1.id}"
+    display_name = "eth0"
+    assign_public_ip = true
+    hostname_label = "appcn01"
+  },
+
+  metadata {
+    ssh_authorized_keys = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdSYVIvv/pCTVX0UE/R+KmnuzI3wIGP23XZPCRQp+q71dTbbCCM/wEEXJ4idSLZpRGF0vKXWi9G2yShnFIL0TYLXEwptxc0csNkG8sl4FStAGIiSGzCXoIDMjYc3dF8Gq2M3Rlaf7o1snUmlH3rQIgvAhWfwxFBj+iFDb6+R1keMG6pzK420QRFpXYUmZhWBQeE3lFsusArao9ByIH3fw/juMsFmU3WHtgu2VtDI81gprk24Si380yyVzSms2V2ipIHihE2jhz/GvJ4FNdbjn9/t+OmApMigHmjvFq05fsrh75P+7FRbCIWB5KUA+Gq11LcZchh29TKl1oSGzcSu7B"
+    user_data = "${base64encode(var.user-data-httpd-cn01)}"
+  }
+
+  timeouts {
+    create = "60m"
+  }
+}
+
+
+###
+### APPCN02: compute Ubuntu con Tomcat: my.custom.ubuntu.16.04.v1.2.with.Tomcat !!!
+###
+
+
+resource "oci_core_instance" "SPOUGAPPCN02" {
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.1.name}"
+  compartment_id = "${var.compartment_ocid}"
+  display_name = "SPOUGAPPCN02"
+  image = "ocid1.image.oc1.phx.aaaaaaaasmcy3r5welurklsdtrlwqqqjhdy5jwe32ycsm3glf53z5ggjbznq"
+  shape = "VM.Standard1.2"
+
+  create_vnic_details {
+    subnet_id = "${oci_core_subnet.spougnet-ad2.id}"
+    display_name = "eth0"
+    assign_public_ip = true
+    hostname_label = "appcn02"
+  },
+
+  metadata {
+    ssh_authorized_keys = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdSYVIvv/pCTVX0UE/R+KmnuzI3wIGP23XZPCRQp+q71dTbbCCM/wEEXJ4idSLZpRGF0vKXWi9G2yShnFIL0TYLXEwptxc0csNkG8sl4FStAGIiSGzCXoIDMjYc3dF8Gq2M3Rlaf7o1snUmlH3rQIgvAhWfwxFBj+iFDb6+R1keMG6pzK420QRFpXYUmZhWBQeE3lFsusArao9ByIH3fw/juMsFmU3WHtgu2VtDI81gprk24Si380yyVzSms2V2ipIHihE2jhz/GvJ4FNdbjn9/t+OmApMigHmjvFq05fsrh75P+7FRbCIWB5KUA+Gq11LcZchh29TKl1oSGzcSu7B"
+    user_data = "${base64encode(var.user-data-httpd-cn02)}"
+  }
+
+  timeouts {
+    create = "60m"
+  }
+}
+
+
+###
+### APPCN03: compute Ubuntu con Tomcat: my.custom.ubuntu.16.04.v1.2.with.Tomcat !!!
+###
+
+
+resource "oci_core_instance" "SPOUGAPPCN03" {
+  availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.1.name}"
+  compartment_id = "${var.compartment_ocid}"
+  display_name = "SPOUGAPPCN03"
+  image = "ocid1.image.oc1.phx.aaaaaaaasmcy3r5welurklsdtrlwqqqjhdy5jwe32ycsm3glf53z5ggjbznq"
+  shape = "VM.Standard1.2"
+
+  create_vnic_details {
+    subnet_id = "${oci_core_subnet.spougnet-ad2.id}"
+    display_name = "eth0"
+    assign_public_ip = true
+    hostname_label = "appcn03"
+  },
+
+  metadata {
+    ssh_authorized_keys = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdSYVIvv/pCTVX0UE/R+KmnuzI3wIGP23XZPCRQp+q71dTbbCCM/wEEXJ4idSLZpRGF0vKXWi9G2yShnFIL0TYLXEwptxc0csNkG8sl4FStAGIiSGzCXoIDMjYc3dF8Gq2M3Rlaf7o1snUmlH3rQIgvAhWfwxFBj+iFDb6+R1keMG6pzK420QRFpXYUmZhWBQeE3lFsusArao9ByIH3fw/juMsFmU3WHtgu2VtDI81gprk24Si380yyVzSms2V2ipIHihE2jhz/GvJ4FNdbjn9/t+OmApMigHmjvFq05fsrh75P+7FRbCIWB5KUA+Gq11LcZchh29TKl1oSGzcSu7B"
+    user_data = "${base64encode(var.user-data-httpd-cn03)}"
+  }
+
+  timeouts {
+    create = "60m"
+  }
+}
+
+##
+## Adhoc script for CN01 y CN02: customiza el fichero /var/www/html/index.html !!!
+##
+
+variable "user-data-httpd-cn01" {
+  default = <<EOF
+#!/bin/bash -x
+echo '################### webserver userdata begins #####################'
+touch ~opc/userdata.`date +%s`.start
+## Modifica la pagina de inicio de Apache Webserver !!!
+##
+sed '1,$ s/Apache2 Ubuntu: APPCN02/Apache2 Ubuntu: '`hostname`'/' /var/www/html/index.html > /tmp/t
+mv /tmp/t /var/www/html/index.html
+
+## Modifica el DataSource de acceso a la base de datos !!!
+##
+sed '1,$ s/spougcn01.sub10301222580.spougnet.oraclevcn.com:1521/dbcn01-scan.dnslabel3.spougnet.oraclevcn.com:1521/' /opt/tomcat/webapps/JDBCSample/META-INF/context.xml > /tmp/t
+sed '1,$ s/pdb1.sub10301222580.spougnet.oraclevcn.com/spougpdb.dnslabel3.spougnet.oraclevcn.com/' /tmp/t > /opt/tomcat/webapps/JDBCSample/META-INF/context.xml
+touch ~opc/userdata.`date +%s`.finish
+echo '################### webserver userdata ends #######################'
+EOF
+}
+
+variable "user-data-httpd-cn02" {
+  default = <<EOF
+#!/bin/bash -x
+echo '################### webserver userdata begins #####################'
+touch ~opc/userdata.`date +%s`.start
+sed '1,$ s/Apache2 Ubuntu: APPCN02/Apache2 Ubuntu: '`hostname`'/' /var/www/html/index.html > /tmp/t
+sed '1,$ s/background-color: #CD5C5C;/background-color: #FFFF00;/' /tmp/t > /var/www/html/index.html
+touch ~opc/userdata.`date +%s`.finish
+echo '################### webserver userdata ends #######################'
+EOF
+}
+
+
+variable "user-data-httpd-cn03" {
+  default = <<EOF
+#!/bin/bash -x
+echo '################### webserver userdata begins #####################'
+touch ~opc/userdata.`date +%s`.start
+## Modifica el DataSource de acceso a la base de datos !!!
+##
+sed '1,$ s/spougcn01.sub10301222580.spougnet.oraclevcn.com:1521/dbcn01-scan.dnslabel3.spougnet.oraclevcn.com:1521/' /opt/tomcat/webapps/JDBCSample/META-INF/context.xml > /tmp/t
+sed '1,$ s/pdb1.sub10301222580.spougnet.oraclevcn.com/spougpdb.dnslabel3.spougnet.oraclevcn.com/' /tmp/t > /opt/tomcat/webapps/JDBCSample/META-INF/context.xml
+touch ~opc/userdata.`date +%s`.finish
+echo '################### webserver userdata ends #######################'
+EOF
+}
+
+###
+### Load Balancer !!!
+###
+
+resource "oci_load_balancer" "spouglb" {
+  shape          = "100Mbps"
+  compartment_id = "${var.compartment_ocid}"
+  subnet_ids     = [
+    "${oci_core_subnet.spougnet-ad1.id}",
+    "${oci_core_subnet.spougnet-ad2.id}"
+  ]
+  display_name   = "spouglb"
+}
+
+###
+### Backend sets !!!
+###
+
+resource "oci_load_balancer_backendset" "spougbs1" {
+  name             = "spougbs1"
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  policy           = "ROUND_ROBIN"
+
+  health_checker {
+    port     = "80"
+    protocol = "HTTP"
+    response_body_regex = ".*"
+    url_path = "/"
+  }
+}
+
+resource "oci_load_balancer_backendset" "spougbs2" {
+  name             = "spougbs2"
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  policy           = "ROUND_ROBIN"
+
+  health_checker {
+    port     = "8080"
+    protocol = "HTTP"
+    response_body_regex = ".*"
+    url_path = "/JDBCSample/JDBCSample_Servlet"
+  }
+}
+
+##
+## Agregar Backends a los Backend Sets !!!
+##
+
+## Al Backend Set spougbs1 le agrego los compute 1 y 2 con un peso de 1 y 2 respectivamente !!!
+
+resource "oci_load_balancer_backend" "lb-be11" {
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  backendset_name  = "${oci_load_balancer_backendset.spougbs1.id}"
+  ip_address       = "${oci_core_instance.SPOUGAPPCN01.private_ip}"
+  port             = 80
+  backup           = false
+  drain            = false
+  offline          = false
+  weight           = 1
+}
+
+resource "oci_load_balancer_backend" "lb-be12" {
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  backendset_name  = "${oci_load_balancer_backendset.spougbs1.id}"
+  ip_address       = "${oci_core_instance.SPOUGAPPCN02.private_ip}"
+  port             = 80
+  backup           = false
+  drain            = false
+  offline          = false
+  weight           = 2
+}
+
+## Al Backend Set spougbs2 le agrego los compute 1 y 3 con un peso de 1 y 2 respectivamente !!!
+
+resource "oci_load_balancer_backend" "lb-be21" {
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  backendset_name  = "${oci_load_balancer_backendset.spougbs2.id}"
+  ip_address       = "${oci_core_instance.SPOUGAPPCN01.private_ip}"
+  port             = 8080
+  backup           = false
+  drain            = false
+  offline          = false
+  weight           = 1
+}
+
+resource "oci_load_balancer_backend" "lb-be22" {
+  load_balancer_id = "${oci_load_balancer.spouglb.id}"
+  backendset_name  = "${oci_load_balancer_backendset.spougbs2.id}"
+  ip_address       = "${oci_core_instance.SPOUGAPPCN03.private_ip}"
+  port             = 8080
+  backup           = false
+  drain            = false
+  offline          = false
+  weight           = 2
+}
+
+##
+## Los listeners !!!
+##
+
+resource "oci_load_balancer_listener" "spouglsnr1" {
+  load_balancer_id         = "${oci_load_balancer.spouglb.id}"
+  name                     = "spouglsnr80"
+  default_backend_set_name = "${oci_load_balancer_backendset.spougbs1.id}"
+  port                     = 80
+  protocol                 = "HTTP"
+}
+
+resource "oci_load_balancer_listener" "spouglsnr2" {
+  load_balancer_id         = "${oci_load_balancer.spouglb.id}"
+  name                     = "http"
+  default_backend_set_name = "${oci_load_balancer_backendset.spougbs2.id}"
+  port                     = 8080
+  protocol                 = "HTTP"
+}
+
+output "lb_public_ip" {
+  value = ["${oci_load_balancer.spouglb.ip_addresses}"]
+}
+

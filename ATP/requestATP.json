@@ -1,0 +1,9 @@
+{
+"compartmentId" : "ocid1.compartment.oc1..aaaaaaaa7tbvlkrfgwd56t5uqh3bw3j5wm65kq4kyewjp7q4wd6jxexdwgjq",
+  "dbName" : "test3db",
+  "displayName" : "TEST3-ATP",
+  "adminPassword" : "CodeExplore#2019",
+  "cpuCoreCount" : 1,
+  "dataStorageSizeInTBs" : 1,
+  "licenseModel" : "LICENSE_INCLUDED"
+}
