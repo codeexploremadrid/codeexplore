@@ -199,3 +199,27 @@ resource "oci_core_subnet" "ProductionVcn-ad3" {
    license_model = "BRING_YOUR_OWN_LICENSE"
    node_count = "1"
  }
+
+ resource "oci_database_db_system" "dipcDBSYSTEM11G" {
+   availability_domain = "${data.oci_identity_availability_domains.ADs.availability_domains.0.name}"
+   compartment_id = "${var.compartment_ocid}"
+   cpu_core_count = "1"
+   database_edition = "ENTERPRISE_EDITION"
+   db_home {
+     database {
+       "admin_password" = "ZZ0r_cle#1"
+       "db_name" = "dipcDB"
+     }
+     db_version = "11.2.0.4"
+     display_name = "dipcDB11g"
+   }
+   disk_redundancy = "NORMAL"
+   shape = "VM.Standard2.1"
+   subnet_id = "${oci_core_subnet.ProductionVcn-ad1.id}"
+   ssh_public_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJIs2yN8yOE/by93733wHGob7L1l0Ly7xzsaxt+NTx8jDStIA4pRTizeYGzx59MsQv1E9rq/+04K4gNYal+GaLYcnFK67JRMG4+z56nmiNwcO0NJAn3sZsa9oARCmvKchO+wQf2bTFn++GvvetBWDqy3UKK8mk3cflBHJ8yJjgn4Ald2NcGw1gNqyLXgk6jZAtStS1epoyNgUWM7skh4v3JB1Q4rPWKQPiX16TNtdoGKT3rMntIk30p4k3TN60nCIEDhr5ZfOcIJLCoiiqqSRjcGers0zQpFlaaJU0TZ33UnTXPDW56dzLiZc5udvc8irk7TI+qz1eydzv/unbgHKb key"]
+   display_name = "dipcDB11g"
+   hostname = "dipcdb01"
+   data_storage_size_in_gb = "256"
+   license_model = "LICENSE_INCLUDED"
+   node_count = "1"
+ }

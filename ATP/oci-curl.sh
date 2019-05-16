@@ -5,14 +5,17 @@
 # ex:
 # oci-curl iaas.us-ashburn-1.oraclecloud.com get "/20160918/instances?compartmentId=some-compartment-ocid"
 # oci-curl iaas.us-ashburn-1.oraclecloud.com post ./request.json "/20160918/vcns"
-# https://docs.cloud.oracle.com/iaas/Content/Resources/Assets/signing_sample_bash.txt
 
 function oci-curl {
     # TODO: update these values to your own
-	local tenancyId="ocid1.tenancy.oc1..aaaaaaaacm3tqgzzg76vqknh5ozkybsayvjdxhzmuuh2ykl5suo2npdnxyfq";
-	local authUserId="ocid1.user.oc1..aaaaaaaakcrueowom73wl2hftslytu5ovn6ns2cukxynglga2ueovjlhqg4q";
-	local keyFingerprint="77:36:b2:3b:6e:3b:45:0e:fa:e7:9c:ea:3d:0e:50:f0";
-	local privateKeyPath="KEYS/ocikey";
+	local tenancyId="$TF_VAR_tenancy_ocid";
+	local authUserId="$TF_VAR_user_ocid";
+	local keyFingerprint="09:cb:d1:ce:a3:7d:bd:5a:80:8f:0f:f6:fa:cf:e5:21";
+	local privateKeyPath="ATP/oci_api_key.pem";
+    
+    echo $tenancyId
+    echo $authUserId
+    echo $keyFingerprint
 
     local alg=rsa-sha256
     local sigVersion="1"
