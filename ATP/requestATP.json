@@ -1,7 +1,7 @@
 {
-  "compartmentId" : "'"$TF_VAR_compartment_ocid"'",
-  "dbName" : "test4db",
-  "displayName" : "TEST4-ATP",
+  "compartmentId" : "ocid1.compartment.oc1..aaaaaaaaejlswyiy2uhqgvrshqzivduye5vlo24i2j6t4qjtb4v5h3p5k6ba",
+  "dbName" : "test3db",
+  "displayName" : "TEST3-ATP",
   "adminPassword" : "CodeExplore#2019",
   "cpuCoreCount" : 1,
   "dataStorageSizeInTBs" : 1,
