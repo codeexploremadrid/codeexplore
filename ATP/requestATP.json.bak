@@ -1,5 +1,5 @@
 {
-  "compartmentId" : "'"$TF_VAR_compartment_ocid"'",
+"compartmentId" : "$TF_VAR_compartment_ocid",
   "dbName" : "test4db",
   "displayName" : "TEST4-ATP",
   "adminPassword" : "CodeExplore#2019",

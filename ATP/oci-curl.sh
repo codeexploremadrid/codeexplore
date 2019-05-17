@@ -10,8 +10,8 @@ function oci-curl {
     # TODO: update these values to your own
 	local tenancyId="$TF_VAR_tenancy_ocid";
 	local authUserId="$TF_VAR_user_ocid";
-	local keyFingerprint="09:cb:d1:ce:a3:7d:bd:5a:80:8f:0f:f6:fa:cf:e5:21";
-	local privateKeyPath="ATP/oci_api_key.pem";
+	local keyFingerprint="$TF_VAR_api_fingerprint";
+	local privateKeyPath="../KEYS/ocikey";
     
     echo $tenancyId
     echo $authUserId
