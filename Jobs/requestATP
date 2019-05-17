@@ -1,0 +1,8 @@
+Step
+---- start
+cd ATP
+chmod +x ../VARS/envVarsLinux.sh
+. ../VARS/envVarsLinux.sh
+chmod +x createATP.sh
+./createATP.sh
+---- end
