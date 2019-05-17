@@ -1,0 +1,7 @@
+Create a unique Step Unix Shell with the following lines
+
+chmod +x VARS/EnvVarsLinux.sh
+. VARS/EnvVarsLinux.sh
+cd ATP
+chmod +x createATP.sh
+./createATP.sh

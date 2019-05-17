@@ -1,0 +1,6 @@
+Create a unique Step Unix Shell with the following lines
+
+cd DBCS
+terraform init
+terraform plan -destroy -var-file ../VARS/terraform.tfvars
+terraform destroy -auto-approve

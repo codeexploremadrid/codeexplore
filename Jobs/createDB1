@@ -1,0 +1,10 @@
+Create a unique Step Unix Shell with the following lines
+
+cd DBCS
+. ./VARS/envVarsLinux.sh
+terraform init
+terraform plan -var-file ../VARS/terraform.tfvars
+terraform apply -auto-approve -var-file ../VARS/terraform.tfvars 
+git add  terraform.tfstate
+git commit -m "Developer Cloud Service Terraform Deploy $(Date)"
+git push -u origin master

@@ -1,0 +1,20 @@
+Create a unique Step OCIcli with your tenant paremeters
+
+User OCID <your user ocid>
+Fingerprint <your public key fingerprint>
+Tenancy <your tenancy ocid>
+Private Key <your private key>
+Region eu-frankfurt-1
+
+Create a unique Step Unix Shell with the following lines
+
+mkdir -p $HOME/.kube
+oci ce cluster create-kubeconfig --cluster-id <your OKE cluster ocid> --file $HOME/.kube/config --region eu-frankfurt-1
+export KUBECONFIG=$HOME/.kube/config
+kubectl config view
+kubectl get nodes
+kubectl create -f nodejs_micro.yaml
+sleep 120
+kubectl get services nodejsmicro-k8s-service
+kubectl get pods
+kubectl describe pods
