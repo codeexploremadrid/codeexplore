@@ -8,4 +8,4 @@ http://<host>:<port>/dicloud/agentdeployment/v1/packages/current/configurationfo
 
 ---WebKitFormBoundary7MA4YWxkTrZu0gW' \
 
--F 'cfgJson={"operatingSystem":"linux.64.bit","connectors":["GGMON_BIGDATA"]}'
+-F 'cfgJson={"operatingSystem":"linux.64.bit","connectors":["GGMON_ORACLE_11g"]}'
