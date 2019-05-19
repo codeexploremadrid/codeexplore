@@ -1,0 +1,1 @@
+docker run --name swingbench --rm -d -t domgiles/swingbench oewizard -cs //130.61.27.199:1521/dipcDB_fra1sz.dnslabel1.skynet.oraclevcn.com -u soe  -p "ZZ0r_cle#1"  -cl -create -scale 0.1 -v -ts USERS  -dbap "ZZ0r_cle#1"
