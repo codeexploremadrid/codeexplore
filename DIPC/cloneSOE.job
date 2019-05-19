@@ -24,5 +24,5 @@ Restriction Level Default
 Unix Shell
 cp KEYS/privateKey . 
 chmod 600 privateKey
-ssh -i privateKey opc@130.61.21.210 -t 'sudo cp /home/opc/.ssh/authorized_keys /home/oracle/.ssh/authorized_keys'
-ssh -i privateKey oracle@130.61.21.210 -t 'impdp system/ZZ0r_cle#1@cepdb.dnslabel1.skynet.oraclevcn.com directory=DATA_PUMP_DIR logfile=soe.log schemas=SOE network_link=dipc'
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i privateKey opc@130.61.21.210 -tt 'sudo cp /home/opc/.ssh/authorized_keys /home/oracle/.ssh/authorized_keys'
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i privateKey oracle@130.61.21.210 -tt 'impdp system/ZZ0r_cle#1@//130.61.21.210:1521/cepdb.dnslabel1.skynet.oraclevcn.com directory=DATA_PUMP_DIR logfile=soe.log schemas=SOE network_link=dipc'
