@@ -1,5 +1,4 @@
 SQLcl
-
 Username system
 Password ZZ0r_cle#1
 Credentials File 
@@ -9,7 +8,7 @@ SQL Statements grant imp_full_database,exp_full_database to soe;
 Role Default
 Restriction Level Default
 
-
+SQLcl
 Username system
 Password ZZ0r_cle#1
 Credentials File
@@ -21,3 +20,9 @@ create public database link dipc connect to soe identified by ZZ0r_cle#1 using
 select sysdate from dual@dipc;
 Role Default
 Restriction Level Default
+
+Unix Shell
+cp KEYS/privateKey . 
+chmod 600 privateKey
+ssh -i privateKey opc@130.61.21.210 -t 'sudo cp /home/opc/.ssh/authorized_keys /home/oracle/.ssh/authorized_keys'
+ssh -i privateKey oracle@130.61.21.210 -t 'impdp system/ZZ0r_cle#1@cepdb.dnslabel1.skynet.oraclevcn.com directory=DATA_PUMP_DIR logfile=soe.log schemas=SOE network_link=dipc'
