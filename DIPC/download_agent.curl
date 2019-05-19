@@ -1,11 +1,6 @@
 curl -X POST \
-
 http://dipcdocker-dipccodeexplore001-prqga8jp.srv.ravcloud.com:8001/dicloud/agentdeployment/v1/packages/current/configurationforms \
-
 -H 'Postman-Token: c03b45c2-3635-4876-bc17-8ff9c6387e01' \
-
 -H 'cache-control: no-cache' \
-
 -H 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
-
 -F 'cfgJson={"operatingSystem":"linux.64.bit","connectors":["GGMON_ORACLE_11g"]}'
