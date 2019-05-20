@@ -15,7 +15,7 @@
         "command": [
           "oewizard",
           "-cs",
-          "//130.61.21.210:1521/pdb1.dnslabel1.skynet.oraclevcn.com",
+          "//130.61.21.210:1521/pdb2.dnslabel1.skynet.oraclevcn.com",
           "-u",
           "soe",
           "-p",
