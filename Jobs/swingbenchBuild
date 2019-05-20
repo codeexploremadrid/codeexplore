@@ -1,3 +1,11 @@
+OCIcli
+User OCID
+Fingerprint
+Tenancy
+Private Key
+Region
+EU_Frankfurt_1 ("eu-frankfurt-1")
+
 Unix Shell
 Script
 mkdir -p $HOME/.kube
