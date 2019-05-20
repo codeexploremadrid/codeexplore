@@ -1,11 +1,11 @@
 Unix Shell
 Script
 mkdir -p $HOME/.kube
-oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.eu-frankfurt-1.aaaaaaaaae2tomrugnrwgzlbmnsgiobqme4wgytehbqtomjrgctgizrsgeyt --file $HOME/.kube/config --region eu-frankfurt-1
+oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.eu-frankfurt-1.aaaaaaaaae3wezrzgjtdsobwg43giytfgm2wgyjsgizwkzjvgc3wknbqgayt --file $HOME/.kube/config --region eu-frankfurt-1
 export KUBECONFIG=$HOME/.kube/config
 kubectl config view
 kubectl get nodes
-kubectl create -f SOE/swingbench.yaml
+kubectl replace --force -f SOE/swingbench.yaml
 sleep 60
 kubectl get pods
-kubectl describe pods
+kubectl describe pod swingbenchdevcs
