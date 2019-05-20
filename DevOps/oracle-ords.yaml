@@ -1,0 +1,37 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: ords-k8s-deployment
+spec:
+  selector:
+    matchLabels:
+      app: oracleords
+  replicas: 1 # deployment runs 1 pods matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: oracleords
+    spec:
+      containers:
+      - name: oracleords
+        image: codeexplore/oracle-ords:latest
+        env:
+        - name: DB_HOSTNAME
+          value: "130.61.21.210" 
+        - name: DB_SERVICE
+          value: "CEDB_fra1bf.dnslabel1.skynet.oraclevcn.com"
+        ports:
+        - containerPort: 8080 #Endpoint is at port 8080 in the container
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ords-k8s-service
+spec:
+  type: LoadBalancer #Exposes the service as a node port
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: oracleords
