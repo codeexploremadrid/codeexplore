@@ -5,7 +5,7 @@ oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.eu-frankfurt-1.a
 export KUBECONFIG=$HOME/.kube/config
 kubectl config view
 kubectl get nodes
-kubectl create -f Jobs/swingbench.yaml
+kubectl create -f SOE/swingbench.yaml
 sleep 60
 kubectl get pods
 kubectl describe pods
