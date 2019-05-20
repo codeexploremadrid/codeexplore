@@ -2,7 +2,7 @@
   "kind": "Pod",
   "apiVersion": "v1",
   "metadata": {
-    "generateName": "swingbenchdevcs-",
+    "name": "swingbenchdevcs",
     "labels": {
       "name": "codeexplore"
     }
@@ -15,7 +15,7 @@
         "command": [
           "oewizard",
           "-cs",
-          "//130.61.21.210:1521/pdb2.dnslabel1.skynet.oraclevcn.com",
+          "//130.61.106.246:1521/pdb2.sub05190914190.skynet.oraclevcn.com",
           "-u",
           "soe",
           "-p",
