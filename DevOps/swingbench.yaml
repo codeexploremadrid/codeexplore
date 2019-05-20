@@ -2,7 +2,7 @@
   "kind": "Pod",
   "apiVersion": "v1",
   "metadata": {
-    "name": "swingbenchdevcs",
+    "generateName": "swingbenchdevcs-",
     "labels": {
       "name": "codeexplore"
     }
