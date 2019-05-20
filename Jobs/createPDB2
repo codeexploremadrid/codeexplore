@@ -1,0 +1,19 @@
+SQLcl
+Username sys
+Password ZZ0r_cle#1
+Credentials File
+Connect String 130.61.21.210:1521/CEDB_fra1bf.dnslabel1.skynet.oraclevcn.com
+Source
+Inline SQL
+SQL Statements
+alter pluggable database pdb2 close immediate;
+drop pluggable database PDB2 including datafiles;
+create pluggable database PDB2 from cePDB keystore identified by "ZZ0r_cle#1";
+alter pluggable database pdb2 open;
+alter session set container=PDB2;
+create tablespace TBS2 datafile size 1G autoextend on maxsize 10G;
+select name from dba_services;
+Role
+SYSDBA
+Restriction Level
+Default
