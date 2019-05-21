@@ -2,5 +2,5 @@ Pipeline
 job1: checkSOE
 job2: cloneSOE
 job3: impdpSOE
-job4: checksoeSOE
+job4: checkSOE
 job5: enableORDS.SOE.ORDERS
