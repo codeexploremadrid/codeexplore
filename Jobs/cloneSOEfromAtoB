@@ -3,3 +3,4 @@ job1: checkSOE
 job2: cloneSOE
 job3: impdpSOE
 job4: checksoeSOE
+job5: enableORDS.SOE.ORDERS
