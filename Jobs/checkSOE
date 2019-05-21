@@ -1,0 +1,31 @@
+SQLcl
+Username soe
+Password ZZ0r_cle#1
+Credentials File
+Credentials zip file is required for Oracle Database Exadata Express Cloud Service and Autonomous Transaction Processing connection
+
+Connect String 130.61.27.199:1521/dipcDB_fra1sz.dnslabel1.skynet.oraclevcn.com
+Source
+Inline SQL
+SQL Statements
+select count(customer_id), sum(customer_id) from soe.orders;
+Role
+Default
+Restriction Level
+Default
+
+SQLcl
+Username soe
+Password ZZ0r_cle#1
+Credentials File
+Credentials zip file is required for Oracle Database Exadata Express Cloud Service and Autonomous Transaction Processing connection
+
+Connect String 130.61.21.210:1521/pdb1.dnslabel1.skynet.oraclevcn.com
+Source
+Inline SQL
+SQL Statements
+select count(customer_id), sum(customer_id) from soe.orders;
+Role
+Default
+Restriction Level
+Default
