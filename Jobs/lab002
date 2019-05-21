@@ -1,0 +1,3 @@
+Pipeline lab002
+Job1: createPDB2
+Job2: swingbenchBuild
