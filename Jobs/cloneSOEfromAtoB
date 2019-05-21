@@ -1,6 +1,6 @@
 Pipeline
-job1: checkSOE
-job2: cloneSOE
-job3: impdpSOE
-job4: checkSOE
-job5: enableORDS.SOE.ORDERS
+Job1: checkSOE
+Job2: cloneSOE
+Job3: impdpSOE
+Job4: checkSOE
+Job5: enableORDS.SOE.ORDERS
