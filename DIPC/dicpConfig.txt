@@ -7,8 +7,8 @@ Type Oracle
 Agent DIPC.localdomain:7005
 Hostname 130.61.100.52
 Port 1521
-Username system
-Schema SYSTEM
+Username system/ZZ0r_cle#1
+Schema SOE
 Service Name dipcDB_fra17b.sub05190914190.skynet.oraclevcn.com 
 
 Name CEDB_fra1jg.sub05190914190.skynet.oraclevcn.com
@@ -18,7 +18,7 @@ Type Oracle CDB
 Agent DIPC.localdomain:7005
 Hostname 130.61.106.246
 Port 1521
-Username c##ggadm
+Username c##ggadm/ZZ0r_cle#1
 Schema c##ggadm
 Service Name CEDB_fra1jg.sub05190914190.skynet.oraclevcn.com
 
@@ -29,7 +29,7 @@ Type Oracle
 Agent DIPC.localdomain:7005
 Hostname 130.61.106.246
 Port 1521
-Username system
+Username system/ZZ0r_cle#1
 Schema SOE
 Service Name pdb1.sub05190914190.skynet.oraclevcn.com 
 CDB Connection
