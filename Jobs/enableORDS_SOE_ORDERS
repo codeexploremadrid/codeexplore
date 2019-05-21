@@ -1,0 +1,40 @@
+
+Username soe
+Password ZZ0r_cle#1
+Credentials File
+Credentials zip file is required for Oracle Database Exadata Express Cloud Service and Autonomous Transaction Processing connection
+
+Connect String 130.61.21.210:1521/pdb1.dnslabel1.skynet.oraclevcn.com
+Source
+Inline SQL
+SQL Statements
+BEGIN
+
+    ORDS.ENABLE_SCHEMA(p_enabled => TRUE,
+                       p_schema => 'SOE',
+                       p_url_mapping_type => 'BASE_PATH',
+                       p_url_mapping_pattern => 'soe',
+                       p_auto_rest_auth => FALSE);
+
+    commit;
+
+END;
+/
+
+BEGIN
+
+    ORDS.ENABLE_OBJECT(p_enabled => TRUE,
+                       p_schema => 'SOE',
+                       p_object => 'ORDERS',
+                       p_object_type => 'TABLE',
+                       p_object_alias => 'orders',
+                       p_auto_rest_auth => FALSE);
+
+    commit;
+
+END;
+/
+Role
+Default
+Restriction Level
+Default
