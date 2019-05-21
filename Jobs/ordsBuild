@@ -1,0 +1,19 @@
+OCIcli
+User OCID
+Fingerprint
+Tenancy
+Private Key
+Region
+EU_Frankfurt_1 ("eu-frankfurt-1")
+
+Unix Shell
+Script
+mkdir -p $HOME/.kube
+oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.eu-frankfurt-1.aaaaaaaaae3wezrzgjtdsobwg43giytfgm2wgyjsgizwkzjvgc3wknbqgayt --file $HOME/.kube/config --region eu-frankfurt-1
+export KUBECONFIG=$HOME/.kube/config
+kubectl config view
+kubectl get nodes
+kubectl apply -f DevOps/oracle-ords.yaml
+sleep 60
+kubectl get services
+kubectl describe services
