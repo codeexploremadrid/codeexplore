@@ -1,5 +1,4 @@
 Pipeline
-Job: cloneSOE
-Job: impdpSOE
+Job: moveSOE
 Job: enableORDS.SOE.ORDERS
 Job: checkSOE
