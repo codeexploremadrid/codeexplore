@@ -1,0 +1,146 @@
+---
+- name: Launch a compute instance and connect to it using SSH
+  hosts: localhost
+  vars:
+    # common networking definitions
+    quad_zero_route: "0.0.0.0/0"
+    TCP_protocol: "6"
+    SSH_port: "22"
+    Rstudio_port: "8787"
+    Zeppelin_port: "8080"
+    Jupyter_port: "8888"
+
+    vcn_name: "ansiblevcn"
+    vcn_cidr_block: "10.0.0.0/16"
+    vcn_dns_label: "ansiblevcn"
+
+    ig_name: "ansibleig"
+
+    route_table_name: "ansibleroutetable"
+    # route all internet access to our Internet Gateway
+    route_table_rules:
+        - cidr_block: "{{ quad_zero_route }}"
+          network_entity_id: "{{ ig_id }}"
+
+
+    subnet_cidr: "10.0.0.48/28"
+    subnet_name: "ansiblesubnet"
+    subnet_dns_label: "ansiblesubnet"
+
+    securitylist_name: "ansiblesecuritylist"
+
+    instance_shape: "BM.GPU2.2"
+    instance_hostname: "BMgpuserver"
+    # autonomous
+    cpu_core_count: "1"
+    display_name: "ansibledwh"
+    admin_password: "xxxxx"
+    db_name: "ansibledb"
+    data_storage_size_in_tbs: "1"
+    license_model: "BRING_YOUR_OWN_LICENSE"
+
+    #########################################
+    # Tenancy specific configuration
+    # *Note* - Override the following variables based on your tenancy
+    # or set a valid value for the corresponding environment variable
+    #########################################
+    instance_ad: "VrTN:EU-FRANKFURT-1-AD-1"
+    # compartment GPU
+    instance_compartment: "ocid1.compartment.oc1..aaaaaaaahnorzxnqgkcjxqm6jutyzcme5xqrrwxpumhqxvxm5nynty6rovoq"
+    # provide an "OL" image
+    # get available with
+    # oci compute image list --compartment-id ocid1.compartment.oc1..aaaaaaaapryf6vgl3j25dfiefoxdlq5u6yvucipbmqzifl5vbgpipsj2bfga
+    #instance_image: "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaaut24cplvhgfoh7iobli5csjvta2rttri2y4bi3oo4msxd7y5jugq"
+    # Oracle-NGC-Deep-Learning-Image
+    instance_image: "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaauwmn34u6e3hermwqlyhbufnqhhmej55j45mpvb4eow4umwlmgjha"
+
+  tasks:
+    - import_tasks: oci-setup.yaml
+
+    - name: Arrancar una instancia de computo
+      oci_instance:
+        availability_domain: "{{ instance_ad }}"
+        compartment_id: "{{ instance_compartment }}"
+        name: "BMgpuserver"
+        image_id: "{{ instance_image }}"
+        shape: "{{ instance_shape }}"
+        vnic:
+            assign_public_ip: True
+            hostname_label: "{{ instance_hostname }}"
+            subnet_id: "{{ instance_subnet_id }}"
+        metadata:
+            ssh_authorized_keys: "{{ lookup('file',  my_test_public_key ) }}"
+        freeform_tags: { "app": "gpu", "environment": "codeexplore"}
+      register: result
+
+    - name: Detalles de la instancia
+      debug:
+        msg: "Launched a new instance {{ result }}"
+    - set_fact:
+        instance_id: "{{result.instance.id }}"
+
+    - name: Obtenet detalles de la VNIC de la instancia
+      oci_vnic_attachment_facts:
+        compartment_id: "{{ instance_compartment }}"
+        instance_id: "{{ instance_id }}"
+      register: result
+
+    - name: Obtenet datos de la VNIC
+      oci_vnic_facts:
+        id: "{{ result.vnic_attachments[0].vnic_id }}"
+      register: result
+    - set_fact:
+        instance_public_ip: "{{result.vnic.public_ip}}"
+
+    - name: Imprimir la direccion IP publica de la instancia
+      debug:
+        msg: "Public IP of launched instance {{ instance_public_ip }}"
+
+    - name: Crear un ADWH
+      oci_autonomous_data_warehouse:
+          compartment_id: "{{ instance_compartment }}"
+          cpu_core_count: "{{ cpu_core_count }}"
+          display_name: "{{ display_name }}"
+          admin_password: "{{ admin_password }}"
+          db_name: "{{ db_name }}"
+          data_storage_size_in_tbs: "{{ data_storage_size_in_tbs }}"
+          license_model: "{{ license_model }}"
+          freeform_tags: { "app": "analytics", "environment": "test"}
+          state: 'present'
+      register: result
+
+    - set_fact:
+         autonomous_data_warehouse_id: "{{ result.autonomous_data_warehouse.id }}"
+    - assert:
+        that:
+          - result.autonomous_data_warehouse.lifecycle_state == "AVAILABLE"
+
+    - name: Imprimir el OCID del ADWH
+      debug:
+        msg: "OCID de ADWH {{ autonomous_data_warehouse_id }}"
+
+    - name: Descargar un wallet para conectar
+      local_action: command oci db autonomous-data-warehouse generate-wallet --autonomous-data-warehouse-id '{{ autonomous_data_warehouse_id}}' --password xxxxxxx --file files/wallet.zip
+
+
+#    - name: Wait (upto 5 minutes) for port 22 to become open
+#      wait_for:
+#        port: 22
+#        host: '{{ instance_public_ip }}'
+#        state: started
+#        delay: 10
+#      vars:
+#        ansible_connection: local
+#
+#    - name: Attempt a ssh connection to the newly launced instance
+#      # Use "opc" user as this is an OL image
+#      # Disable SSH's strict host key checking just for this one command invocation
+#      command: ssh -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -i {{ temp_certificates_path }}/private_key.pem opc@{{ instance_public_ip }} uname -a
+#      retries: 3
+#      delay: 5
+#      register: result
+#      until: result.rc == 0
+#
+#    - name: Print SSH response from launched instance
+#      debug:
+#        msg: "SSH response from instance -> {{ result.stdout_lines }}"
